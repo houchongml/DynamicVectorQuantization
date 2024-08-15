@@ -32,9 +32,14 @@ class DualGrainVQModel(pl.LightningModule):
         self.quantize = instantiate_from_config(vqconfig)
 
         self.quant_conv = torch.nn.Conv2d(quant_before_dim, quant_after_dim, 1)
-        self.post_quant_conv = torch.nn.Conv2d(quant_after_dim, quant_before_dim, 1)
-        self.quant_sample_temperature = quant_sample_temperature
+        # •	定义了一个 2D 卷积层，用于将特征图从 quant_before_dim 转换为 quant_after_dim。卷积核大小为 1x1，这意味着它只会改变通道数，不会改变空间维度。
+		#用途:
+		#这个卷积层通常用于调整特征图的通道数，使其与量化模块的输入要求匹配。
 
+        self.post_quant_conv = torch.nn.Conv2d(quant_after_dim, quant_before_dim, 1)
+        # 这个卷积层用于将量化后的特征表示映射回原始的特征空间，以便后续的解码操作。
+        self.quant_sample_temperature = quant_sample_temperature
+        # 置量化采样的温度参数，这个参数通常用于控制采样过程中的随机性。温度越高，采样越随机；温度越低，采样越确定。
         if ckpt_path is not None:
             self.init_from_ckpt(ckpt_path, ignore_keys=ignore_keys)
         self.image_key = image_key
